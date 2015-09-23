@@ -315,11 +315,13 @@ Tester.prototype = {
   },
 
   assertHeaderExists: function(header, next) {
+    header = header.toLowerCase();
     this.chai.assert.isDefined(this.res.headers[header]);
     next();
   },
 
   assertHeaderNotExists: function(header, next) {
+    header = header.toLowerCase();
     this.chai.assert.isUndefined(this.res.headers[header]);
     next();
   }
