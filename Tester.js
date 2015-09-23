@@ -128,6 +128,26 @@ Tester.prototype = {
     }.bind(this));
   },
 
+  head: function (path, next) {
+    var url = this.getUrl(path);
+
+    this.logger.debug('HEAD: ' + url);
+
+    var headers = this.merge({}, this.globals.headers, this.req.headers);
+
+    this.logger.debug('with headers: ' + JSON.stringify(headers));
+
+    this.request.get({url: url, headers: headers}, function (error, response) {
+      if (error) throw error;
+      this.req = {};
+      this.res.body = (typeof body === 'undefined') ? '' : body;
+      this.res.headers = response.headers;
+      this.res.statusCode = response.statusCode;
+
+      next(this.res);
+    }.bind(this));
+  },
+
   put: function (path, next) {
     var url = this.getUrl(path);
 
@@ -142,6 +162,33 @@ Tester.prototype = {
     }
 
     this.request.put({url: url, body: this.req.body, headers: headers}, function (error, response, body) {
+      if (error) throw error;
+      this.req = {};
+      this.res.body = body;
+      this.res.headers = response.headers;
+      this.res.statusCode = response.statusCode;
+
+      next(this.res);
+    }.bind(this));
+  },
+
+  /**
+   * @see https://tools.ietf.org/html/rfc5789
+   */
+  patch: function (path, next) {
+    var url = this.getUrl(path);
+
+    this.logger.debug('PATCH: ' + url);
+
+    var headers = this.merge({}, this.globals.headers, this.req.headers);
+
+    this.logger.debug('with headers: ' + JSON.stringify(headers));
+
+    if (this.req.body) {
+      this.logger.debug('with body: ' + this.req.body);
+    }
+
+    this.request.patch({url: url, body: this.req.body, headers: headers}, function (error, response, body) {
       if (error) throw error;
       this.req = {};
       this.res.body = body;
