@@ -239,6 +239,17 @@ Tester.prototype = {
     next();
   },
 
+  modifyAndAssertJSON: function(custom_assertion) {
+    var self = this;
+    custom_assertion(
+      JSON.parse(this.res.body),
+      function(expected_json, modified_json) {
+        expected_json = JSON.parse(expected_json);
+        self.chai.assert.deepEqual(expected_json, modified_json);
+      }
+    );
+  },
+
   assertJSON: function (json, next) {
     this.chai.assert.deepEqual(json, JSON.parse(this.res.body));
     next();
