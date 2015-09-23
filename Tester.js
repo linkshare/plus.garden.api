@@ -24,7 +24,7 @@ var Tester = function (logger, options) {
   this.getUrl = function (path) {
     var url_parts = url.parse(path, true);
     var query = url_parts.query;
-    var params = qs.stringify(this.merge(this.globals.parameters, this.req.parameters, query));
+    var params = qs.stringify(this.merge({}, this.globals.parameters, this.req.parameters, query));
 
     if (url_parts.host) {
       return url_parts.protocol + '//' + url_parts.host + url_parts.pathname + '?' + params;
@@ -41,7 +41,7 @@ var Tester = function (logger, options) {
 
     for (i in hashes) {
       key = undefined;
-      for (var j in hashes[i]) {
+      for (j in hashes[i]) {
         if (!key) {
           key = hashes[i][j];
         } else {
@@ -66,7 +66,7 @@ Tester.prototype = {
   },
 
   addParameters: function (parameters, next) {
-    this.req.parameters = this.merge(this.req.parameters, parameters);
+    this.req.parameters = this.merge({}, this.req.parameters, parameters);
     next();
   },
 
@@ -74,12 +74,12 @@ Tester.prototype = {
     if (headers.hashes) {
       headers = this.convertToJson(headers);
     }
-    this.req.headers = this.merge(this.req.headers, headers);
+    this.req.headers = this.merge({}, this.req.headers, headers);
     next();
   },
 
   addGlobalParameters: function (parameters, next) {
-    this.globals.parameters = this.merge(this.globals.parameters, parameters);
+    this.globals.parameters = this.merge({}, this.globals.parameters, parameters);
     this.logger.debug('GlobalParameters: ' + JSON.stringify(this.globals.parameters));
     next();
   },
@@ -113,7 +113,7 @@ Tester.prototype = {
 
     this.logger.debug('GET: ' + url);
 
-    var headers = this.merge(this.globals.headers, this.req.headers, headers);
+    var headers = this.merge({}, this.globals.headers, this.req.headers);
 
     this.logger.debug('with headers: ' + JSON.stringify(headers));
 
@@ -133,7 +133,7 @@ Tester.prototype = {
 
     this.logger.debug('PUT: ' + url);
 
-    var headers = this.merge(this.globals.headers, this.req.headers, headers);
+    var headers = this.merge({}, this.globals.headers, this.req.headers);
 
     this.logger.debug('with headers: ' + JSON.stringify(headers));
 
@@ -157,7 +157,7 @@ Tester.prototype = {
 
     this.logger.debug('PUT: ' + url);
 
-    var headers = this.merge(this.globals.headers, this.req.headers, headers);
+    var headers = this.merge({}, this.globals.headers, this.req.headers);
 
     this.logger.debug('with headers: ' + JSON.stringify(headers));
 
@@ -181,7 +181,7 @@ Tester.prototype = {
 
     this.logger.debug('DELETE: ' + url);
 
-    var headers = this.merge(this.globals.headers, this.req.headers, headers);
+    var headers = this.merge({}, this.globals.headers, this.req.headers);
 
     this.logger.debug('with headers: ' + JSON.stringify(headers));
 
@@ -204,8 +204,8 @@ Tester.prototype = {
     var url = this.getUrl(path);
     this.logger.debug('REQUEST (' + method + '): ' + url);
 
-    var headers = this.merge(this.globals.headers, this.req.headers, headers);
-    var json = (headers['Content-Type'] == 'application/json') ? true : false;
+    var headers = this.merge({}, this.globals.headers, this.req.headers);
+    var json = (headers['Content-Type'] == 'application/json');
 
     this.logger.debug('with headers: ' + JSON.stringify(headers));
 
