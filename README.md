@@ -147,6 +147,8 @@ API Reference
   * [`put`](#put)
   * [`del`](#del)
   * [`http`](#http)
+  * [`head`](#head)
+  * [`patch`](#patch)
 
 * **Assertions**
   * [`assertContains`](#assertContains)
@@ -189,6 +191,18 @@ Sends a GET request to a given `path`.
 -------------
 
 
+<a name="head" />
+###head
+
+Sends a HEAD request to a given `path`.
+
+```javascript
+    this.api.head(path).then(callback);
+```
+
+-------------
+
+
 <a name="post" />
 ###post
 
@@ -196,6 +210,20 @@ Sends a POST request to a given `path`.
 
 ```javascript
     this.api.post(path).then(callback);
+```
+
+*Note: use [`setBody`](#setBody) method to set a body of request*
+
+-------------
+
+
+<a name="patch" />
+###patch
+
+Sends a PATCH request to a given `path`.
+
+```javascript
+    this.api.patch(path).then(callback);
 ```
 
 *Note: use [`setBody`](#setBody) method to set a body of request*
