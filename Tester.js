@@ -26,14 +26,12 @@ var Tester = function (logger, options) {
     var query = url_parts.query;
     var params = qs.stringify(this.merge({}, this.globals.parameters, this.req.parameters, query));
 
-    if (url_parts.host) {
-      return url_parts.protocol + '//' + url_parts.host + url_parts.pathname + '?' + params;
-    }
+    var host_proto = (url_parts.host
+      ? url_parts.protocol + '//' + url_parts.host
+      : this.options.host
+    );
 
-    if (params) {
-      return this.options.host + url_parts.pathname + '?' + params;
-    }
-    return this.options.host + url_parts.pathname;
+    return host_proto + url_parts.pathname + (params ? '?' + params : '');
   };
 
   this.convertToJson = function (table) {
@@ -109,150 +107,37 @@ Tester.prototype = {
   },
 
   get: function (path, next) {
-    var url = this.getUrl(path);
-
-    this.logger.debug('GET: ' + url);
-
-    var headers = this.merge({}, this.globals.headers, this.req.headers);
-
-    this.logger.debug('with headers: ' + JSON.stringify(headers));
-
-    this.request.get({url: url, headers: headers}, function (error, response, body) {
-      if (error) throw error;
-      this.req = {};
-      this.res.body = body;
-      this.res.headers = response.headers;
-      this.res.statusCode = response.statusCode;
-
-      next(this.res);
-    }.bind(this));
+    this.http(path, 'get', next);
   },
 
   head: function (path, next) {
-    var url = this.getUrl(path);
-
-    this.logger.debug('HEAD: ' + url);
-
-    var headers = this.merge({}, this.globals.headers, this.req.headers);
-
-    this.logger.debug('with headers: ' + JSON.stringify(headers));
-
-    this.request.get({url: url, headers: headers}, function (error, response) {
-      if (error) throw error;
-      this.req = {};
-      this.res.body = (typeof body === 'undefined') ? '' : body;
-      this.res.headers = response.headers;
-      this.res.statusCode = response.statusCode;
-
-      next(this.res);
-    }.bind(this));
+    this.http(path, 'head', next);
   },
 
   put: function (path, next) {
-    var url = this.getUrl(path);
-
-    this.logger.debug('PUT: ' + url);
-
-    var headers = this.merge({}, this.globals.headers, this.req.headers);
-
-    this.logger.debug('with headers: ' + JSON.stringify(headers));
-
-    if (this.req.body) {
-      this.logger.debug('with body: ' + this.req.body);
-    }
-
-    this.request.put({url: url, body: this.req.body, headers: headers}, function (error, response, body) {
-      if (error) throw error;
-      this.req = {};
-      this.res.body = body;
-      this.res.headers = response.headers;
-      this.res.statusCode = response.statusCode;
-
-      next(this.res);
-    }.bind(this));
+    this.http(path, 'put', next);
   },
 
   /**
    * @see https://tools.ietf.org/html/rfc5789
    */
   patch: function (path, next) {
-    var url = this.getUrl(path);
-
-    this.logger.debug('PATCH: ' + url);
-
-    var headers = this.merge({}, this.globals.headers, this.req.headers);
-
-    this.logger.debug('with headers: ' + JSON.stringify(headers));
-
-    if (this.req.body) {
-      this.logger.debug('with body: ' + this.req.body);
-    }
-
-    this.request.patch({url: url, body: this.req.body, headers: headers}, function (error, response, body) {
-      if (error) throw error;
-      this.req = {};
-      this.res.body = body;
-      this.res.headers = response.headers;
-      this.res.statusCode = response.statusCode;
-
-      next(this.res);
-    }.bind(this));
+    this.http(path, 'patch', next);
   },
 
   post: function (path, next) {
-    var url = this.getUrl(path);
-
-    this.logger.debug('PUT: ' + url);
-
-    var headers = this.merge({}, this.globals.headers, this.req.headers);
-
-    this.logger.debug('with headers: ' + JSON.stringify(headers));
-
-    if (this.req.body) {
-      this.logger.debug('with body: ' + this.req.body);
-    }
-
-    this.request.post({url: url, body: this.req.body, headers: headers}, function (error, response, body) {
-      if (error) throw error;
-      this.req = {};
-      this.res.body = body;
-      this.res.headers = response.headers;
-      this.res.statusCode = response.statusCode;
-
-      next(this.res);
-    }.bind(this));
+    this.http(path, 'post', next);
   },
 
   del: function (path, next) {
-    var url = this.getUrl(path);
-
-    this.logger.debug('DELETE: ' + url);
-
-    var headers = this.merge({}, this.globals.headers, this.req.headers);
-
-    this.logger.debug('with headers: ' + JSON.stringify(headers));
-
-    if (this.req.headers) {
-      this.logger.debug('with headers: ' + JSON.stringify(this.req.headers));
-    }
-
-    this.request.del({url: url, headers: headers}, function (error, response, body) {
-      if (error) throw error;
-      this.req = {};
-      this.res.body = body;
-      this.res.headers = response.headers;
-      this.res.statusCode = response.statusCode;
-
-      next(this.res);
-    }.bind(this));
+    this.http(path, 'del', next);
   },
 
   http: function (path, method, next) {
     var url = this.getUrl(path);
-    this.logger.debug('REQUEST (' + method + '): ' + url);
+    this.logger.debug(method.toUpperCase() + ': ' + url);
 
     var headers = this.merge({}, this.globals.headers, this.req.headers);
-    var json = (headers['Content-Type'] == 'application/json');
 
     this.logger.debug('with headers: ' + JSON.stringify(headers));
 
@@ -260,12 +145,22 @@ Tester.prototype = {
       this.logger.debug('with body: ' + JSON.stringify(this.req.body));
     }
 
-    this.request({url: url, method: method, body: this.req.body, headers: headers, json: json}, function (error, response, body) {
+    var sendObj = {
+      url: url,
+      method: method,
+      body: this.req.body,
+      headers: headers
+      //json: (headers['Content-Type'] === 'application/json')
+    };
+
+    this.request(sendObj, function (error, response, body) {
       if (error) throw error;
       this.req = {};
-      this.res.body = body;
+      this.res.body = (typeof body === 'undefined') ? '' : body; //HEAD has no body
       this.res.headers = response.headers;
       this.res.statusCode = response.statusCode;
+
+      this.logger.debug('response body: ' + this.res.body);
 
       next(this.res);
     }.bind(this));
