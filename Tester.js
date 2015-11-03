@@ -150,7 +150,6 @@ Tester.prototype = {
       method: method,
       body: this.req.body,
       headers: headers
-      //json: (headers['Content-Type'] === 'application/json')
     };
 
     this.request(sendObj, function (error, response, body) {
