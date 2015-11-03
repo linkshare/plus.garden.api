@@ -180,6 +180,27 @@ Tester.prototype = {
     next();
   },
 
+  /**
+   * Enables modification of the JSON returned by the server via a custom callback, before the assertion is called.
+   * This enables dynamic properties of the returned JSON to be stripped before the comparison is made.
+   * This is for applying an assertion in the JSON with a custom callback for modifying the JSON before the comparison
+   * takes place, so to account for dynamic response values, like ID fields, for example.
+   *
+   * this.Then(/^the response should match the following, taking into account that "([^"]*)" are dynamic fields:$/, 
+   *   function(fields, exp_json, callback) {
+   *     fields = fields.split(',');
+   *     this.api.modifyAndAssertJSON(function(actual_json, call){
+   *       var field_name, i;
+   *       for (i = 0; i < fields.length; i++) {
+   *         field_name = fields[i];
+   *         actual_json[field_name] = "";
+   *       }
+   *       call(exp_json, actual_json);
+   *     })
+   *     .then(callback);
+   *   }
+   * );
+   */
   modifyAndAssertJSON: function(custom_assertion) {
     var self = this;
     custom_assertion(
