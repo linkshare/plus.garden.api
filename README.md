@@ -145,7 +145,7 @@ API Reference
   * [`get`](#get)
   * [`post`](#post)
   * [`put`](#put)
-  * [`del`](#del)
+  * [`delete`](#delete)
   * [`http`](#http)
   * [`head`](#head)
   * [`patch`](#patch)
@@ -245,13 +245,13 @@ Sends a PUT request to a given `path`.
 -------------
 
 
-<a name="del" />
-###del
+<a name="delete" />
+###delete
 
 Sends a DELETE request to a given `path`.
 
 ```javascript
-    this.api.del(path).then(callback);
+    this.api.delete(path).then(callback);
 ```
 
 -------------
