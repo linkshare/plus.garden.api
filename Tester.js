@@ -129,8 +129,14 @@ Tester.prototype = {
     this.http(path, 'post', next);
   },
 
+  /**
+   * @deprecated please use delete instead 
+   */
   del: function (path, next) {
-    this.http(path, 'del', next);
+    this.http(path, 'delete', next);
+  },
+  delete: function (path, next) {
+    this.http(path, 'delete', next);
   },
 
   http: function (path, method, next) {
