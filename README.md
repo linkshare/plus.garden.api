@@ -488,6 +488,20 @@ takes place, so to account for dynamic response values, like ID fields, for exam
     })
 ```
 
+Example usage in a feature:
+```javascript
+Then the response should match the following, taking into account that "id,mid" are dynamic fields:
+"""
+{
+  "id": "",
+  "mid": 2310,
+  "sid": 112,
+  "lotsofotherfields": "foo",
+  "etc..."
+}
+"""
+```
+
 -------------
 
 
