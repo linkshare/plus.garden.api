@@ -145,8 +145,10 @@ API Reference
   * [`get`](#get)
   * [`post`](#post)
   * [`put`](#put)
-  * [`del`](#del)
+  * [`delete`](#delete)
   * [`http`](#http)
+  * [`head`](#head)
+  * [`patch`](#patch)
 
 * **Assertions**
   * [`assertContains`](#assertContains)
@@ -164,6 +166,7 @@ API Reference
   * [`assertStatus`](#assertStatus)
   * [`assertStatusNot`](#assertStatusNot)
   * [`assertText`](#assertText)
+  * [`modifyAndAssertJSON`](#modifyAndAssertJSON)
 
 * **Request Property**
   * [`addHeaders`](#addHeaders)
@@ -189,6 +192,18 @@ Sends a GET request to a given `path`.
 -------------
 
 
+<a name="head" />
+###head
+
+Sends a HEAD request to a given `path`.
+
+```javascript
+    this.api.head(path).then(callback);
+```
+
+-------------
+
+
 <a name="post" />
 ###post
 
@@ -196,6 +211,20 @@ Sends a POST request to a given `path`.
 
 ```javascript
     this.api.post(path).then(callback);
+```
+
+*Note: use [`setBody`](#setBody) method to set a body of request*
+
+-------------
+
+
+<a name="patch" />
+###patch
+
+Sends a PATCH request to a given `path`.
+
+```javascript
+    this.api.patch(path).then(callback);
 ```
 
 *Note: use [`setBody`](#setBody) method to set a body of request*
@@ -217,13 +246,13 @@ Sends a PUT request to a given `path`.
 -------------
 
 
-<a name="del" />
-###del
+<a name="delete" />
+###delete
 
 Sends a DELETE request to a given `path`.
 
 ```javascript
-    this.api.del(path).then(callback);
+    this.api.delete(path).then(callback);
 ```
 
 -------------
@@ -436,6 +465,41 @@ Checks if the body of returned response equals to given `text`.
 
 ```javascript
     this.api.assertText(text).then(callback);
+```
+
+-------------
+
+<a name="modifyAndAssertJSON" />
+###modifyAndAssertJSON
+
+Enables modification of the JSON returned by the server via a custom callback, before the assertion is called.
+This enables dynamic properties of the returned JSON to be stripped before the comparison is made.
+This is for applying an assertion in the JSON with a custom callback for modifying the JSON before the comparison
+takes place, so to account for dynamic response values, like ID fields, for example.
+
+```javascript
+    this.api.modifyAndAssertJSON(function(actual_json, call){
+      var field_name, i;
+      for (i = 0; i < fields.length; i++) {
+        field_name = fields[i];
+        actual_json[field_name] = "";
+      }
+      call(exp_json, actual_json);
+    })
+```
+
+Example usage in a feature:
+```javascript
+Then the response should match the following, taking into account that "id,mid" are dynamic fields:
+"""
+{
+  "id": "",
+  "mid": 2310,
+  "sid": 112,
+  "lotsofotherfields": "foo",
+  "etc..."
+}
+"""
 ```
 
 -------------

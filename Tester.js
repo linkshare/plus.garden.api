@@ -24,16 +24,14 @@ var Tester = function (logger, options) {
   this.getUrl = function (path) {
     var url_parts = url.parse(path, true);
     var query = url_parts.query;
-    var params = qs.stringify(this.merge(this.globals.parameters, this.req.parameters, query));
+    var params = qs.stringify(this.merge({}, this.globals.parameters, this.req.parameters, query));
 
-    if (url_parts.host) {
-      return url_parts.protocol + '//' + url_parts.host + url_parts.pathname + '?' + params;
-    }
+    var host_proto = (url_parts.host
+      ? url_parts.protocol + '//' + url_parts.host
+      : this.options.host
+    );
 
-    if (params) {
-      return this.options.host + url_parts.pathname + '?' + params;
-    }
-    return this.options.host + url_parts.pathname;
+    return host_proto + url_parts.pathname + (params ? '?' + params : '');
   };
 
   this.convertToJson = function (table) {
@@ -41,7 +39,7 @@ var Tester = function (logger, options) {
 
     for (i in hashes) {
       key = undefined;
-      for (var j in hashes[i]) {
+      for (j in hashes[i]) {
         if (!key) {
           key = hashes[i][j];
         } else {
@@ -66,7 +64,7 @@ Tester.prototype = {
   },
 
   addParameters: function (parameters, next) {
-    this.req.parameters = this.merge(this.req.parameters, parameters);
+    this.req.parameters = this.merge({}, this.req.parameters, parameters);
     next();
   },
 
@@ -74,12 +72,12 @@ Tester.prototype = {
     if (headers.hashes) {
       headers = this.convertToJson(headers);
     }
-    this.req.headers = this.merge(this.req.headers, headers);
+    this.req.headers = this.merge({}, this.req.headers, headers);
     next();
   },
 
   addGlobalParameters: function (parameters, next) {
-    this.globals.parameters = this.merge(this.globals.parameters, parameters);
+    this.globals.parameters = this.merge({}, this.globals.parameters, parameters);
     this.logger.debug('GlobalParameters: ' + JSON.stringify(this.globals.parameters));
     next();
   },
@@ -109,103 +107,43 @@ Tester.prototype = {
   },
 
   get: function (path, next) {
-    var url = this.getUrl(path);
+    this.http(path, 'get', next);
+  },
 
-    this.logger.debug('GET: ' + url);
-
-    var headers = this.merge(this.globals.headers, this.req.headers, headers);
-
-    this.logger.debug('with headers: ' + JSON.stringify(headers));
-
-    this.request.get({url: url, headers: headers}, function (error, response, body) {
-      if (error) throw error;
-      this.req = {};
-      this.res.body = body;
-      this.res.headers = response.headers;
-      this.res.statusCode = response.statusCode;
-
-      next(this.res);
-    }.bind(this));
+  head: function (path, next) {
+    this.http(path, 'head', next);
   },
 
   put: function (path, next) {
-    var url = this.getUrl(path);
+    this.http(path, 'put', next);
+  },
 
-    this.logger.debug('PUT: ' + url);
-
-    var headers = this.merge(this.globals.headers, this.req.headers, headers);
-
-    this.logger.debug('with headers: ' + JSON.stringify(headers));
-
-    if (this.req.body) {
-      this.logger.debug('with body: ' + this.req.body);
-    }
-
-    this.request.put({url: url, body: this.req.body, headers: headers}, function (error, response, body) {
-      if (error) throw error;
-      this.req = {};
-      this.res.body = body;
-      this.res.headers = response.headers;
-      this.res.statusCode = response.statusCode;
-
-      next(this.res);
-    }.bind(this));
+  /**
+   * @see https://tools.ietf.org/html/rfc5789
+   */
+  patch: function (path, next) {
+    this.http(path, 'patch', next);
   },
 
   post: function (path, next) {
-    var url = this.getUrl(path);
-
-    this.logger.debug('PUT: ' + url);
-
-    var headers = this.merge(this.globals.headers, this.req.headers, headers);
-
-    this.logger.debug('with headers: ' + JSON.stringify(headers));
-
-    if (this.req.body) {
-      this.logger.debug('with body: ' + this.req.body);
-    }
-
-    this.request.post({url: url, body: this.req.body, headers: headers}, function (error, response, body) {
-      if (error) throw error;
-      this.req = {};
-      this.res.body = body;
-      this.res.headers = response.headers;
-      this.res.statusCode = response.statusCode;
-
-      next(this.res);
-    }.bind(this));
+    this.http(path, 'post', next);
   },
 
+  /**
+   * @deprecated please use delete instead 
+   */
   del: function (path, next) {
-    var url = this.getUrl(path);
-
-    this.logger.debug('DELETE: ' + url);
-
-    var headers = this.merge(this.globals.headers, this.req.headers, headers);
-
-    this.logger.debug('with headers: ' + JSON.stringify(headers));
-
-    if (this.req.headers) {
-      this.logger.debug('with headers: ' + JSON.stringify(this.req.headers));
-    }
-
-    this.request.del({url: url, headers: headers}, function (error, response, body) {
-      if (error) throw error;
-      this.req = {};
-      this.res.body = body;
-      this.res.headers = response.headers;
-      this.res.statusCode = response.statusCode;
-
-      next(this.res);
-    }.bind(this));
+    this.http(path, 'delete', next);
+  },
+  delete: function (path, next) {
+    this.http(path, 'delete', next);
   },
 
   http: function (path, method, next) {
     var url = this.getUrl(path);
-    this.logger.debug('REQUEST (' + method + '): ' + url);
+    this.logger.debug(method.toUpperCase() + ': ' + url);
 
-    var headers = this.merge(this.globals.headers, this.req.headers, headers);
-    var json = (headers['Content-Type'] == 'application/json') ? true : false;
+    var headers = this.merge({}, this.globals.headers, this.req.headers);
 
     this.logger.debug('with headers: ' + JSON.stringify(headers));
 
@@ -213,12 +151,21 @@ Tester.prototype = {
       this.logger.debug('with body: ' + JSON.stringify(this.req.body));
     }
 
-    this.request({url: url, method: method, body: this.req.body, headers: headers, json: json}, function (error, response, body) {
+    var sendObj = {
+      url: url,
+      method: method,
+      body: this.req.body,
+      headers: headers
+    };
+
+    this.request(sendObj, function (error, response, body) {
       if (error) throw error;
       this.req = {};
-      this.res.body = body;
+      this.res.body = (typeof body === 'undefined') ? '' : body; //HEAD has no body
       this.res.headers = response.headers;
       this.res.statusCode = response.statusCode;
+
+      this.logger.debug('response body: ' + this.res.body);
 
       next(this.res);
     }.bind(this));
@@ -237,6 +184,17 @@ Tester.prototype = {
   assertContentType: function (contentType, next) {
     this.chai.assert.include(this.res.headers['content-type'], contentType);
     next();
+  },
+
+  modifyAndAssertJSON: function(custom_assertion) {
+    var self = this;
+    custom_assertion(
+      JSON.parse(this.res.body),
+      function(expected_json, modified_json) {
+        expected_json = JSON.parse(expected_json);
+        self.chai.assert.deepEqual(expected_json, modified_json);
+      }
+    );
   },
 
   assertJSON: function (json, next) {
@@ -315,11 +273,13 @@ Tester.prototype = {
   },
 
   assertHeaderExists: function(header, next) {
+    header = header.toLowerCase();
     this.chai.assert.isDefined(this.res.headers[header]);
     next();
   },
 
   assertHeaderNotExists: function(header, next) {
+    header = header.toLowerCase();
     this.chai.assert.isUndefined(this.res.headers[header]);
     next();
   }
