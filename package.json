@@ -1,6 +1,6 @@
 {
   "name": "plus.garden.api",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "API tester for plus.garden",
   "main": "index.js",
   "scripts": {
