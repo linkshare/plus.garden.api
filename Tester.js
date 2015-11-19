@@ -6,7 +6,7 @@
  * ===================================================================================== */
 
 var Tester = function (logger, options) {
-  var qs = require('querystring');
+  var qs = require('qs');
   var url = require('url');
 
   this.jsondiffpatch = require('jsondiffpatch');
@@ -23,12 +23,12 @@ var Tester = function (logger, options) {
 
   this.getUrl = function (path) {
     var url_parts = url.parse(path, true);
-    var query = url_parts.query;
-    var params = qs.stringify(this.merge({}, this.globals.parameters, this.req.parameters, query));
+    var query = qs.parse(url_parts.search.substr(1),  { strictNullHandling: true });
+    var params = qs.stringify(this.merge({}, this.globals.parameters, this.req.parameters, query), { strictNullHandling: true });
 
     var host_proto = (url_parts.host
-      ? url_parts.protocol + '//' + url_parts.host
-      : this.options.host
+            ? url_parts.protocol + '//' + url_parts.host
+            : this.options.host
     );
 
     return host_proto + url_parts.pathname + (params ? '?' + params : '');

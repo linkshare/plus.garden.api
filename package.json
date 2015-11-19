@@ -1,6 +1,6 @@
 {
   "name": "plus.garden.api",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "API tester for plus.garden",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,8 @@
     "request": "2.47.0",
     "merge": "~1.2.0",
     "jsondiffpatch": "~0.1.20",
-    "jspath": "~0.2.13"
+    "jspath": "~0.2.13",
+    "qs": "5.2.0"
   },
   "author": "Vadim Tyukov <vadim@forma-pro.com>",
   "license": "MIT"
