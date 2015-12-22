@@ -68,6 +68,11 @@ Tester.prototype = {
     next();
   },
 
+  addOptions: function (options, next) {
+    this.req.options = this.merge({}, this.req.options, options);
+    next();
+  },
+
   addHeaders: function (headers, next) {
     if (headers.hashes) {
       headers = this.convertToJson(headers);
@@ -151,12 +156,12 @@ Tester.prototype = {
       this.logger.debug('with body: ' + JSON.stringify(this.req.body));
     }
 
-    var sendObj = {
+    var sendObj = this.merge({
       url: url,
       method: method,
       body: this.req.body,
       headers: headers
-    };
+    }, this.req.options||{} );
 
     this.request(sendObj, function (error, response, body) {
       if (error) throw error;

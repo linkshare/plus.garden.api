@@ -171,6 +171,7 @@ API Reference
 * **Request Property**
   * [`addHeaders`](#addHeaders)
   * [`addParameters`](#addParameters)
+  * [`addOptions`](#addOptions)
   * [`addGlobalHeaders`](#addGlobalHeaders)
   * [`addGlobalParameters`](#addGlobalParameters)
   * [`setBody`](#setBody)
@@ -532,6 +533,26 @@ Adds the given `parameters`*<Array>* to the current request. All parameters are 
     this.api.addParameters(parameters).then(callback);
 ```
 *Note: Don't use it for POST data instead of `setBody` method. The given parameters are placed in a query string, not body*
+
+-------------
+
+
+<a name="addOptions" />
+###addOptions
+
+Adds the given `options`*<Array>* to the current request.
+Options alter the default behaviour of the request.
+
+Example options include:
+* `auth`*<string>*
+* `followRedirect`*<bool>*
+* `strictSSL`*<bool>*
+* `timeout`*<int>*
+* `proxy`*<string>*
+
+```javascript
+    this.api.addOptions(options).then(callback);
+```
 
 -------------
 
